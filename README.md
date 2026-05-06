@@ -45,9 +45,80 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 
 #### _Monitoreo de Consultas_ 
 ##### Top 5 Consultas con pg_stat_statement:
+##1. Consultas por mayor tiempo total de ejecución
+
+#Identifica qué consultas consumen más recursos del sistema en total
+
+SELECT 
+    query,
+    calls,
+    ROUND(total_exec_time::numeric, 2) AS total_time_ms,
+    ROUND(mean_exec_time::numeric, 2) AS avg_time_ms,
+    rows
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 5;
+
+##2.  Consultas por mayor tiempo promedio por ejecución
+#Útil cuando los usuarios reportan lentitud en operaciones puntuales
 
 
+SELECT 
+    query,
+    calls,
+    ROUND(mean_exec_time::numeric, 2) AS avg_time_ms,
+    ROUND(total_exec_time::numeric, 2) AS total_time_ms,
+    rows
+FROM pg_stat_statements
+WHERE calls > 1
+ORDER BY mean_exec_time DESC
+LIMIT 5;
 
+##3.  Consultas por mayor uso de I/O (lectura de disco)
+#Identifica consultas que no aprovechan caché y leen desde disco
+
+
+SELECT 
+    query,
+    calls,
+    shared_blks_read AS disk_blocks_read,
+    shared_blks_hit AS cache_hits,
+    ROUND(100 * shared_blks_hit::numeric / NULLIF(shared_blks_hit + shared_blks_read, 0), 2) AS cache_hit_ratio
+FROM pg_stat_statements
+WHERE shared_blks_read > 0
+ORDER BY shared_blks_read DESC
+LIMIT 5;
+
+##4. Consultas por mayor generación de WAL (escritura)
+#Identifica operaciones que generan mucha carga de escritura en el servidor
+
+
+SELECT 
+    query,
+    calls,
+    wal_records,
+    ROUND(wal_bytes::numeric, 2) AS wal_bytes,
+    ROUND(wal_bytes::numeric / NULLIF(calls, 0), 2) AS wal_per_call
+FROM pg_stat_statements
+WHERE wal_records > 0
+ORDER BY wal_bytes DESC
+LIMIT 5;
+
+##5. Consultas por mayor tiempo de planificación
+#Identifica consultas complejas donde el planificador tarda mucho
+
+
+SELECT 
+    query,
+    calls,
+    plans,
+    ROUND(total_plan_time::numeric, 2) AS total_plan_time_ms,
+    ROUND(mean_plan_time::numeric, 2) AS avg_plan_time_ms,
+    ROUND(total_exec_time::numeric, 2) AS total_exec_time_ms
+FROM pg_stat_statements
+WHERE plans > 0 AND total_plan_time > 0
+ORDER BY total_plan_time DESC
+LIMIT 5;
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
