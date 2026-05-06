@@ -25,10 +25,10 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 ## `Estrategia de Indexación y Optimización`
 |Index | ¿Donde lo usamos?| Justificacion de uso |
 |------|------------------|----------------------|
-|B-TREE|                  |                      |
-|Hash  |                  |                      |
-|GIN   |                  |                      |
-|GIST  |                  |                      |
+|B-TREE|PK,FK,dni,rol,fecha,alumno_id,comison,id |Por defecto. Ideal para igualdad, rango y ordenamiento. Soporta <, >, BETWEEN, ORDER BY|
+|Hash  |email, dni (solo busquedas exactas)|Muy rapido para igualdad exacta (=). No soporta rangos ni ordenamiento|
+|GIN   |observacion (texto completo), nombre y apellido|Busqueda de palabras clave en textos. Usa to_tsvector() para español|
+|GIST  |ubicacion GPS, rangos de fechas superpuestos|Datos espaciales/geometricos. Verificar geolocalizacion o solapamiento de horarios|
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
