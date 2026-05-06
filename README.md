@@ -146,8 +146,8 @@ LIMIT 5;
 ## `SQL Avanzado: Lógica de Negocio`
 |Herramienta    | Nombre | Explicacion de su uso|
 |---------------|--------|----------------------|
-|Window Function|        |                      |
-|CTE            |        |                      |
+|Window Function|ROW_NUMBER(), RANK(), LAG(), LEAD(), AVG() OVER()|Calcula valores a través de filas relacionadas sin agruparlas. Útil para: ranking de asistencia por alumno, detectar ausencias consecutivas (LAG), promedio móvil de asistencias, numerar inscripciones por alumno|
+|CTE            |WITH ... AS|Crea tablas temporales durante la ejecución de la consulta. Mejora la legibilidad y permite: consultas recursivas (jerarquías), reutilizar el mismo subquery varias veces, dividir problemas complejos en pasos simples (ej. primero calcular asistencias, luego filtrar ausencias >30%)|
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
