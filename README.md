@@ -141,6 +141,45 @@ WHERE plans > 0
 ORDER BY total_plan_time DESC
 LIMIT 5;
 ```
+| Categoría | Consulta | Explicación de su uso |
+|------------|-----------|------------------------|
+|Mayor tiempo total de ejecución|INSERT INTO asistencia (...) VALUES (...)|Registro masivo de asistencias de alumnos. Consume mucho tiempo total porque se ejecuta cientos de miles de veces, generando gran carga de escritura en la base de datos.|
+|Mayor tiempo total de ejecución|INSERT INTO usuario (...) VALUES (...)|Inserción de usuarios/alumnos/profesores en el sistema. Alta frecuencia de ejecución debido a cargas masivas de datos académicos.|
+|Mayor tiempo total de ejecución|INSERT INTO comision (...) VALUES (...)|Creación de comisiones/materias. Su impacto proviene de ejecuciones repetidas durante generación de datos de prueba o importaciones masivas.|
+|Mayor tiempo total de ejecución|INSERT INTO inscripcion (...) VALUES (...)|Registro de inscripciones de alumnos en comisiones. Operación intensiva por cantidad de relaciones alumno-comisión almacenadas.|
+|Mayor tiempo total de ejecución|SELECT ... COUNT(*) FROM asistencia JOIN usuario ... GROUP BY ...|Consulta analítica para contabilizar asistencias por alumno. Utiliza JOIN y GROUP BY sobre tablas grandes, aumentando el tiempo total de procesamiento.|
+
+| Categoría | Consulta | Explicación de su uso |
+|------------|-----------|------------------------|
+|Mayor tiempo promedio por ejecución|SELECT * FROM asistencia JOIN usuario JOIN inscripcion ... WHERE fecha BETWEEN ...|Consulta compleja de asistencias en rangos de fechas. Su tiempo promedio elevado se debe al volumen de datos procesados y múltiples JOINs.|
+|Mayor tiempo promedio por ejecución|SELECT usuario + COUNT(CASE WHEN asistio=false ...)|Reporte de ausencias por alumno. Usa agregaciones y filtros HAVING para detectar estudiantes con exceso de faltas.|
+|Mayor tiempo promedio por ejecución|SELECT DISTINCT u.* FROM usuario JOIN inscripcion JOIN comision ...|Obtención de alumnos inscriptos en una materia específica. DISTINCT elimina duplicados generados por relaciones múltiples.|
+|Mayor tiempo promedio por ejecución|UPDATE asistencia SET observacion ...|Actualización puntual de observaciones de asistencia. Puede generar bloqueos y escritura adicional en disco.|
+|Mayor tiempo promedio por ejecución|DELETE FROM asistencia WHERE fecha < ...|Eliminación de registros históricos de asistencia. Operación costosa debido a la cantidad de filas eliminadas.|
+
+| Categoría | Consulta | Explicación de su uso |
+|------------|-----------|------------------------|
+|Mayor uso de I/O|SELECT * FROM asistencia WHERE observacion LIKE '%riesgo%'|Búsqueda textual de observaciones relacionadas con alumnos en riesgo. Alto consumo de disco por búsquedas LIKE sin índices eficientes.|
+|Mayor uso de I/O|SELECT usuario + COUNT(*) FROM usuario JOIN inscripcion JOIN comision GROUP BY ...|Consulta estadística de inscripciones por alumno. Requiere lectura intensiva de varias tablas relacionadas.|
+|Mayor uso de I/O|SELECT * FROM asistencia WHERE fecha BETWEEN ... AND alumno_id = ...|Consulta de historial de asistencia por alumno y fechas. Genera gran lectura de bloques por filtrado temporal.|
+|Mayor uso de I/O|SELECT * FROM usuario WHERE email LIKE '%@gmail.com'|Filtrado de usuarios por dominio de correo electrónico. LIKE con comodín inicial impide uso eficiente de índices.|
+|Mayor uso de I/O|SELECT * FROM comision WHERE turno = 'NOCHE'|Obtención de comisiones del turno noche. Menor impacto gracias a mejor porcentaje de cache hit.|
+
+| Categoría | Consulta | Explicación de su uso |
+|------------|-----------|------------------------|
+|Mayor generación de WAL|INSERT INTO asistencia (...) VALUES (...)|Genera gran cantidad de WAL debido a inserciones masivas de asistencias. Impacta directamente en replicación y recuperación.|
+|Mayor generación de WAL|INSERT INTO usuario (...) VALUES (...)|Alta generación de registros WAL por creación masiva de usuarios y persistencia transaccional.|
+|Mayor generación de WAL|UPDATE asistencia SET observacion ...|Las actualizaciones generan nuevas versiones de filas y aumentan considerablemente la escritura WAL.|
+|Mayor generación de WAL|INSERT INTO comision (...) VALUES (...)|Inserción de comisiones académicas con impacto moderado en WAL por cantidad de operaciones ejecutadas.|
+|Mayor generación de WAL|INSERT INTO inscripcion (...) VALUES (...)|Registro de relaciones alumno-comisión generando escritura constante en logs transaccionales.|
+
+| Categoría | Consulta | Explicación de su uso |
+|------------|-----------|------------------------|
+|Mayor tiempo de planificación|WITH RECURSIVE jerarquia AS (...)|Consulta recursiva para recorrer jerarquías o estructuras relacionadas. El planificador requiere más tiempo para optimizar la recursividad.|
+|Mayor tiempo de planificación|SELECT ..., ROW_NUMBER() OVER (...)|Uso de Window Functions para numerar registros por comisión. El optimizador debe calcular particiones y ordenamientos complejos.|
+|Mayor tiempo de planificación|SELECT * FROM asistencia WHERE alumno_id IN (SELECT ... HAVING COUNT(*) > ...)|Subconsulta con agregación y HAVING para filtrar alumnos con múltiples inscripciones. Incrementa complejidad del plan.|
+|Mayor tiempo de planificación|SELECT fecha, COUNT(*) FILTER (...) GROUP BY fecha|Consulta estadística de presentes y ausentes por fecha utilizando FILTER en agregaciones.|
+|Mayor tiempo de planificación|SELECT usuario + subquery COUNT(*) FROM asistencia ...|Consulta correlacionada que calcula asistencias totales por usuario. El optimizador debe evaluar subconsultas dependientes por fila.|
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## `SQL Avanzado: Lógica de Negocio`
