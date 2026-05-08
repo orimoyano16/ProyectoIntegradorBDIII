@@ -1,3 +1,4 @@
+--
 create database asistencia_institucional_db;
 
 create table audit_logs(
