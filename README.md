@@ -45,141 +45,15 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 
 #### _Monitoreo de Consultas_ 
 ##### Top 5 Consultas con pg_stat_statement:
----------------------------------------------------------------------------------------------
-##1. Consultas por mayor tiempo total de ejecución
 
-#Identifica qué consultas consumen más recursos del sistema en total
-```sql
-SELECT 
-    query,
-    calls,
-    ROUND(total_exec_time::numeric, 2) AS total_time_ms,
-    ROUND(mean_exec_time::numeric, 2) AS avg_time_ms,
-    rows
-FROM pg_stat_statements
-ORDER BY total_exec_time DESC
-LIMIT 5;
-```
---------------------------------------------------------------------------------------------
-##2.  Consultas por mayor tiempo promedio por ejecución
+| Top | Consulta | Explicación |
+|------|-----------|--------------|
+|1|Consultas más lentas|Identifica las queries con mayor tiempo de ejecución|
+|2|Consultas más ejecutadas|Muestra las consultas realizadas con mayor frecuencia|
+|3|Consultas con más I/O|Analiza las consultas que más leen datos de disco|
+|4|Consultas con más WAL|Detecta las consultas que más escritura generan en WAL|
+|5|Consultas con mayor planificación|Mide el tiempo usado por el optimizador de consultas|
 
-#Útil cuando los usuarios reportan lentitud en operaciones puntuales
-
-
-```sql
-SELECT 
-    query,
-    calls,
-    ROUND(mean_exec_time::numeric, 2) AS avg_time_ms,
-    ROUND(total_exec_time::numeric, 2) AS total_time_ms,
-    rows
-FROM pg_stat_statements
-WHERE calls > 1
-ORDER BY mean_exec_time DESC
-LIMIT 5;
-```
--------------------------------------------------------------------------------------------
-##3.  Consultas por mayor uso de I/O (lectura de disco)
-
-#Identifica consultas que no aprovechan caché y leen desde disco
-
-
-```sql
-SELECT 
-    query,
-    calls,
-    shared_blks_read AS disk_blocks_read,
-    shared_blks_hit AS cache_hits,
-    ROUND(
-        100 * shared_blks_hit::numeric /
-        NULLIF(shared_blks_hit + shared_blks_read, 0),
-        2
-    ) AS cache_hit_ratio
-FROM pg_stat_statements
-WHERE shared_blks_read > 0
-ORDER BY shared_blks_read DESC
-LIMIT 5;
-```
--------------------------------------------------------------------------------------------
-##4. Consultas por mayor generación de WAL (escritura)
-
-#Identifica operaciones que generan mucha carga de escritura en el servidor
-
-
-```sql
-SELECT 
-    query,
-    calls,
-    wal_records,
-    ROUND(wal_bytes::numeric, 2) AS wal_bytes,
-    ROUND(
-        wal_bytes::numeric / NULLIF(calls, 0),
-        2
-    ) AS wal_per_call
-FROM pg_stat_statements
-WHERE wal_records > 0
-ORDER BY wal_bytes DESC
-LIMIT 5;
-```
-------------------------------------------------------------------------------------------
-##5. Consultas por mayor tiempo de planificación
-
-#Identifica consultas complejas donde el planificador tarda mucho
-
-
-```sql
-SELECT 
-    query,
-    calls,
-    plans,
-    ROUND(total_plan_time::numeric, 2) AS total_plan_time_ms,
-    ROUND(mean_plan_time::numeric, 2) AS avg_plan_time_ms,
-    ROUND(total_exec_time::numeric, 2) AS total_exec_time_ms
-FROM pg_stat_statements
-WHERE plans > 0
-  AND total_plan_time > 0
-ORDER BY total_plan_time DESC
-LIMIT 5;
-```
-| Categoría | Consulta | Explicación de su uso |
-|------------|-----------|------------------------|
-|Mayor tiempo total de ejecución|INSERT INTO asistencia (...) VALUES (...)|Registro masivo de asistencias de alumnos. Consume mucho tiempo total porque se ejecuta cientos de miles de veces, generando gran carga de escritura en la base de datos.|
-|Mayor tiempo total de ejecución|INSERT INTO usuario (...) VALUES (...)|Inserción de usuarios/alumnos/profesores en el sistema. Alta frecuencia de ejecución debido a cargas masivas de datos académicos.|
-|Mayor tiempo total de ejecución|INSERT INTO comision (...) VALUES (...)|Creación de comisiones/materias. Su impacto proviene de ejecuciones repetidas durante generación de datos de prueba o importaciones masivas.|
-|Mayor tiempo total de ejecución|INSERT INTO inscripcion (...) VALUES (...)|Registro de inscripciones de alumnos en comisiones. Operación intensiva por cantidad de relaciones alumno-comisión almacenadas.|
-|Mayor tiempo total de ejecución|SELECT ... COUNT(*) FROM asistencia JOIN usuario ... GROUP BY ...|Consulta analítica para contabilizar asistencias por alumno. Utiliza JOIN y GROUP BY sobre tablas grandes, aumentando el tiempo total de procesamiento.|
-
-| Categoría | Consulta | Explicación de su uso |
-|------------|-----------|------------------------|
-|Mayor tiempo promedio por ejecución|SELECT * FROM asistencia JOIN usuario JOIN inscripcion ... WHERE fecha BETWEEN ...|Consulta compleja de asistencias en rangos de fechas. Su tiempo promedio elevado se debe al volumen de datos procesados y múltiples JOINs.|
-|Mayor tiempo promedio por ejecución|SELECT usuario + COUNT(CASE WHEN asistio=false ...)|Reporte de ausencias por alumno. Usa agregaciones y filtros HAVING para detectar estudiantes con exceso de faltas.|
-|Mayor tiempo promedio por ejecución|SELECT DISTINCT u.* FROM usuario JOIN inscripcion JOIN comision ...|Obtención de alumnos inscriptos en una materia específica. DISTINCT elimina duplicados generados por relaciones múltiples.|
-|Mayor tiempo promedio por ejecución|UPDATE asistencia SET observacion ...|Actualización puntual de observaciones de asistencia. Puede generar bloqueos y escritura adicional en disco.|
-|Mayor tiempo promedio por ejecución|DELETE FROM asistencia WHERE fecha < ...|Eliminación de registros históricos de asistencia. Operación costosa debido a la cantidad de filas eliminadas.|
-
-| Categoría | Consulta | Explicación de su uso |
-|------------|-----------|------------------------|
-|Mayor uso de I/O|SELECT * FROM asistencia WHERE observacion LIKE '%riesgo%'|Búsqueda textual de observaciones relacionadas con alumnos en riesgo. Alto consumo de disco por búsquedas LIKE sin índices eficientes.|
-|Mayor uso de I/O|SELECT usuario + COUNT(*) FROM usuario JOIN inscripcion JOIN comision GROUP BY ...|Consulta estadística de inscripciones por alumno. Requiere lectura intensiva de varias tablas relacionadas.|
-|Mayor uso de I/O|SELECT * FROM asistencia WHERE fecha BETWEEN ... AND alumno_id = ...|Consulta de historial de asistencia por alumno y fechas. Genera gran lectura de bloques por filtrado temporal.|
-|Mayor uso de I/O|SELECT * FROM usuario WHERE email LIKE '%@gmail.com'|Filtrado de usuarios por dominio de correo electrónico. LIKE con comodín inicial impide uso eficiente de índices.|
-|Mayor uso de I/O|SELECT * FROM comision WHERE turno = 'NOCHE'|Obtención de comisiones del turno noche. Menor impacto gracias a mejor porcentaje de cache hit.|
-
-| Categoría | Consulta | Explicación de su uso |
-|------------|-----------|------------------------|
-|Mayor generación de WAL|INSERT INTO asistencia (...) VALUES (...)|Genera gran cantidad de WAL debido a inserciones masivas de asistencias. Impacta directamente en replicación y recuperación.|
-|Mayor generación de WAL|INSERT INTO usuario (...) VALUES (...)|Alta generación de registros WAL por creación masiva de usuarios y persistencia transaccional.|
-|Mayor generación de WAL|UPDATE asistencia SET observacion ...|Las actualizaciones generan nuevas versiones de filas y aumentan considerablemente la escritura WAL.|
-|Mayor generación de WAL|INSERT INTO comision (...) VALUES (...)|Inserción de comisiones académicas con impacto moderado en WAL por cantidad de operaciones ejecutadas.|
-|Mayor generación de WAL|INSERT INTO inscripcion (...) VALUES (...)|Registro de relaciones alumno-comisión generando escritura constante en logs transaccionales.|
-
-| Categoría | Consulta | Explicación de su uso |
-|------------|-----------|------------------------|
-|Mayor tiempo de planificación|WITH RECURSIVE jerarquia AS (...)|Consulta recursiva para recorrer jerarquías o estructuras relacionadas. El planificador requiere más tiempo para optimizar la recursividad.|
-|Mayor tiempo de planificación|SELECT ..., ROW_NUMBER() OVER (...)|Uso de Window Functions para numerar registros por comisión. El optimizador debe calcular particiones y ordenamientos complejos.|
-|Mayor tiempo de planificación|SELECT * FROM asistencia WHERE alumno_id IN (SELECT ... HAVING COUNT(*) > ...)|Subconsulta con agregación y HAVING para filtrar alumnos con múltiples inscripciones. Incrementa complejidad del plan.|
-|Mayor tiempo de planificación|SELECT fecha, COUNT(*) FILTER (...) GROUP BY fecha|Consulta estadística de presentes y ausentes por fecha utilizando FILTER en agregaciones.|
-|Mayor tiempo de planificación|SELECT usuario + subquery COUNT(*) FROM asistencia ...|Consulta correlacionada que calcula asistencias totales por usuario. El optimizador debe evaluar subconsultas dependientes por fila.|
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## `SQL Avanzado: Lógica de Negocio`
