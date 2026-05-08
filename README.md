@@ -37,20 +37,32 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 |GIST  |ubicacion GPS, rangos de fechas superpuestos|Datos espaciales/geometricos. Verificar geolocalizacion o solapamiento de horarios|
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
-
 ## `Análisis de Performance`
 #### _Consulta sin optimizar_ 
 
-<img width="1365" height="721" alt="image" src="https://github.com/user-attachments/assets/bfc9e87b-ec02-473e-9535-a43f52f2dc60" />
+<img width="1116" height="649" alt="image" src="https://github.com/user-attachments/assets/5851b37f-3ba3-4f8d-819f-45dfa30dc023" />
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Consulta Optimizada_
 
-<img width="1365" height="767" alt="image" src="https://github.com/user-attachments/assets/3184fcd2-b228-4dfe-8106-f5ec0fcfe3a4" />
+<img width="1111" height="648" alt="image" src="https://github.com/user-attachments/assets/a03ec42b-81a6-4ad1-ac2c-c9a575209b39" />
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Dalibo - Sequential Scans VS Index Scans
+
+### Sequential Scan
+
+<img width="1365" height="576" alt="image" src="https://github.com/user-attachments/assets/610776aa-9cd5-45ab-89ab-ab4d79630a45" />
+
+### Index Scan
+
+<img width="1365" height="579" alt="image" src="https://github.com/user-attachments/assets/f4339eab-5abf-493a-9704-87bb2359994c" />
+
+----------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Monitoreo de Consultas_ 
 
