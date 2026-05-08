@@ -67,8 +67,11 @@ ORDER BY total_exec_time DESC
 LIMIT 5;
 ```
 SELECT → elige qué datos querés ver,query (la consulta SQL) y total_exec_time (tiempo total)
+
 FROM pg_stat_statements → de dónde saca los datos
+
 ORDER BY total_exec_time DESC → ordena de mayor a menor
+
 LIMIT 5 → limita el resultado
 
 2. Consultas más ejecutadas
@@ -79,8 +82,11 @@ ORDER BY calls DESC
 LIMIT 5;
 ```
 SELECT → muestra la consulta y cuántas veces se ejecutó
+
 FROM → toma los datos de PostgreSQL
+
 ORDER BY calls DESC → ordena por más ejecuciones
+
 LIMIT 5 → muestra solo las 5 más ejecutadas
 
 3. Consultas con más I/O
@@ -91,8 +97,11 @@ ORDER BY shared_blks_read DESC
 LIMIT 5;
 ```
 SELECT → muestra consulta y lecturas de disco
+
 FROM → toma datos del sistema
+
 ORDER BY shared_blks_read DESC → ordena por más lectura de disco
+
 LIMIT 5 → top 5
 
 4. Consultas con más WAL
@@ -103,8 +112,11 @@ ORDER BY wal_bytes DESC
 LIMIT 5;
 ```
 SELECT → muestra consulta y escritura en WAL
+
 FROM → estadísticas del sistema
+
 ORDER BY wal_bytes DESC → ordena por más escritura
+
 LIMIT 5 → top 5 
 
 5. Consultas con más planificación
@@ -115,8 +127,11 @@ ORDER BY total_plan_time DESC
 LIMIT 5;
 ```
 SELECT→ muestra consulta y tiempo de planificación
+
 FROM → toma datos del sistema
+
 ORDER BY total_plan_time DESC → ordena por las más costosas de planificar
+
 LIMIT 5 → top 5   
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
