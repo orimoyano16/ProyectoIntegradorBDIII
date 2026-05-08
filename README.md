@@ -104,7 +104,7 @@ LIMIT 5;
 
 * ORDER BY calls DESC → ordena por más ejecuciones
 
-* LIMIT 5 → muestra solo las 5 más ejecutadas
+* LIMIT 5 → limita el resultado
 
 ##### 3. _Consultas con más I/O_
 ```sql   
@@ -119,7 +119,7 @@ LIMIT 5;
 
 * ORDER BY shared_blks_read DESC → ordena por más lectura de disco
 
-* LIMIT 5 → top 5
+* LIMIT 5 → limita el resultado
 
 ##### 4. _Consultas con más WAL_
 ```sql
@@ -134,7 +134,7 @@ LIMIT 5;
 
 * ORDER BY wal_bytes DESC → ordena por más escritura
 
-* LIMIT 5 → top 5 
+* LIMIT 5 → limita el resultado 
 
 ##### 5. _Consultas con más planificación_
 ```sql
@@ -149,7 +149,7 @@ LIMIT 5;
 
 * ORDER BY total_plan_time DESC → ordena por las más costosas de planificar
 
-* LIMIT 5 → top 5   
+* LIMIT 5 → limita el resultado   
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
