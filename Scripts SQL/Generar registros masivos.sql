@@ -51,14 +51,14 @@ SELECT
     now()
 FROM generate_series(1, 200000) as i;
 
-INSERT INTO asistencia(alumno_id, comision_id, fecha, asistio, observacion)
+INSERT INTO asistencia(alumno_id, comision_id, fecha, estado, observacion)
 SELECT 
     i,
     i,
     now(),
     CASE ((random() * 1)::int)
-        WHEN 0 THEN true
-        ELSE false
+        WHEN 0 THEN 'PRESENTE'
+        ELSE 'AUSENTE'
     END,
     'Observacion ' || i
 FROM generate_series(1, 200000) as i;

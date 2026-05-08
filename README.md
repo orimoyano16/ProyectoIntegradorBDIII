@@ -7,7 +7,13 @@
 |---------------------|--------------------------------------------------------------------|
 | Descripción         | Es una base de datos para un sistema de asistencia institucional   |
 | Integrantes         | Acuña Roman, Marranti Santiago, Moyano Oriana, Santillan Ariadna   |
+| Objetivo            |Construir una base sólida y optimizada bajo el paradigma relacional, aplicando técnicas de indexación avanzada y análisis de performance|
 
+### `Problematica que resuelve`
+
+* Perdida de tiempo administrativo: Los docentes dedican parte valiosa de la hora de catedra a pasar lista manualmente, lo que les lleva entre 10 y 15 minutos.
+* Actualmente,  algunas instituciones educativas todavía dependen de métodos manuales (Planillas de papel,excel aislados, etc) lo que genera ineficiencia.
+* Por parte de los alumnos, a veces resulta difícil consultar el estado de inasistencias de manera inmediata.
 ------------------------------------------------------------------------------------------------
 ## `Modelado de datos`
 ### _Diagrama Entidad Relación (DER)_
@@ -40,8 +46,6 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Consulta Optimizada_
-| Tipo | Consulta | Explicación |
-|------|-----------|--------------|
 
 <img width="1365" height="767" alt="image" src="https://github.com/user-attachments/assets/3184fcd2-b228-4dfe-8106-f5ec0fcfe3a4" />
 
@@ -49,6 +53,7 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 --------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Monitoreo de Consultas_ 
+
 ##### Top 5 Consultas con pg_stat_statement:
 
 | Top | Consulta | Explicación |
@@ -59,80 +64,80 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 |4|Consultas con más WAL|Detecta las consultas que más escritura generan en WAL|
 |5|Consultas con mayor planificación|Mide el tiempo usado por el optimizador de consultas|
 
-1. Consultas más lentas
+##### 1. _Consultas más lentas_
 ```sql
 SELECT query, total_exec_time
 FROM pg_stat_statements
 ORDER BY total_exec_time DESC
 LIMIT 5;
 ```
-SELECT → elige qué datos querés ver,query (la consulta SQL) y total_exec_time (tiempo total)
+* SELECT → elige qué datos querés ver,query (la consulta SQL) y total_exec_time (tiempo total)
 
-FROM pg_stat_statements → de dónde saca los datos
+* FROM pg_stat_statements → de dónde saca los datos
 
-ORDER BY total_exec_time DESC → ordena de mayor a menor
+* ORDER BY total_exec_time DESC → ordena de mayor a menor
 
-LIMIT 5 → limita el resultado
+* LIMIT 5 → limita el resultado
 
-2. Consultas más ejecutadas
+##### 2. _Consultas más ejecutadas_
 ```sql
 SELECT query, calls
 FROM pg_stat_statements
 ORDER BY calls DESC
 LIMIT 5;
 ```
-SELECT → muestra la consulta y cuántas veces se ejecutó
+* SELECT → muestra la consulta y cuántas veces se ejecutó
 
-FROM → toma los datos de PostgreSQL
+* FROM → toma los datos de PostgreSQL
 
-ORDER BY calls DESC → ordena por más ejecuciones
+* ORDER BY calls DESC → ordena por más ejecuciones
 
-LIMIT 5 → muestra solo las 5 más ejecutadas
+* LIMIT 5 → muestra solo las 5 más ejecutadas
 
-3. Consultas con más I/O
+##### 3. _Consultas con más I/O_
 ```sql   
 SELECT query, shared_blks_read
 FROM pg_stat_statements
 ORDER BY shared_blks_read DESC
 LIMIT 5;
 ```
-SELECT → muestra consulta y lecturas de disco
+* SELECT → muestra consulta y lecturas de disco
 
-FROM → toma datos del sistema
+* FROM → toma datos del sistema
 
-ORDER BY shared_blks_read DESC → ordena por más lectura de disco
+* ORDER BY shared_blks_read DESC → ordena por más lectura de disco
 
-LIMIT 5 → top 5
+* LIMIT 5 → top 5
 
-4. Consultas con más WAL
+##### 4. _Consultas con más WAL_
 ```sql
 SELECT query, wal_bytes
 FROM pg_stat_statements
 ORDER BY wal_bytes DESC
 LIMIT 5;
 ```
-SELECT → muestra consulta y escritura en WAL
+* SELECT → muestra consulta y escritura en WAL
 
-FROM → estadísticas del sistema
+* FROM → estadísticas del sistema
 
-ORDER BY wal_bytes DESC → ordena por más escritura
+* ORDER BY wal_bytes DESC → ordena por más escritura
 
-LIMIT 5 → top 5 
+* LIMIT 5 → top 5 
 
-5. Consultas con más planificación
+##### 5. _Consultas con más planificación_
 ```sql
 SELECT query, total_plan_time
 FROM pg_stat_statements
 ORDER BY total_plan_time DESC
 LIMIT 5;
 ```
-SELECT→ muestra consulta y tiempo de planificación
+* SELECT→ muestra consulta y tiempo de planificación
 
-FROM → toma datos del sistema
+* FROM → toma datos del sistema
 
-ORDER BY total_plan_time DESC → ordena por las más costosas de planificar
+* ORDER BY total_plan_time DESC → ordena por las más costosas de planificar
 
-LIMIT 5 → top 5   
+* LIMIT 5 → top 5   
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
