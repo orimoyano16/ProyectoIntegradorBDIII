@@ -79,3 +79,5 @@ create table asistencia(
 	estado varchar(20),
 	observacion text
 );
+
+	
