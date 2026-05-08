@@ -1,4 +1,3 @@
---
 create database asistencia_institucional_db;
 
 create table audit_logs(
@@ -17,12 +16,13 @@ create table carrera (
 
 create table usuario (
 	usuario_id serial primary key,
+	dni bigint unique not null,
 	nombre varchar(35) not null,
 	apellido varchar(35) not null,
 	email varchar(60) not null,
 	password_hash text not null,
-	dni bigint unique not null,
 	rol int not null,
+	fecha timestamptz,
 	carrera_id int not null,
 	constraint carrera_id
 		foreign key (carrera_id)
@@ -47,10 +47,7 @@ create table comision (
 	profesor_id int,
 	constraint profesor_id
 		foreign key (profesor_id)
-		references usuario(usuario_id),
-	turno text,
-	aula text,
-	ciclo_lectivo int
+		references usuario(usuario_id)
 );
 
 create table inscripcion (
@@ -81,6 +78,7 @@ create table asistencia(
 	observacion text
 );
 	
+
 
 
 
