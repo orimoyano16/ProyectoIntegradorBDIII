@@ -35,12 +35,15 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 ## `Análisis de Performance`
 #### _Consulta sin optimizar_ 
 
-
+| Tipo | Consulta | Explicación |
+|------|-----------|--------------|
+|Sin optimizar|SELECT * FROM usuario WHERE email LIKE '%gmail.com';|El uso de `%` al inicio impide utilizar índices, obligando a PostgreSQL a recorrer toda la tabla.|
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Consulta Optimizada_
-
-
+| Tipo | Consulta | Explicación |
+|------|-----------|--------------|
+|Optimizada|SELECT * FROM usuario WHERE email LIKE 'roman%';|Permite utilizar índices porque el patrón comienza desde el inicio del texto, mejorando el rendimiento.|
 --------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Monitoreo de Consultas_ 
