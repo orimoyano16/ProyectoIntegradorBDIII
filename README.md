@@ -168,6 +168,64 @@ LIMIT 5;
 1.	Función (FUNCTION):
 2.	Procedimiento Almacenado (PROCEDURE):
 3.	Robustez de Tipos:
+## `A. Abstracción y Lógica Procesal`
+
+Implementación en `Scripts SQL/Parte A - Logica Procedural.sql`. Las pruebas están en `Parte A - Pruebas.sql`.
+
+### Función (FUNCTION)
+
+Son rutinas que **devuelven un valor** y encapsulan lógica reutilizable sin modificar datos por sí solas.
+
+| Función | Volatilidad | Qué hace |
+|---------|-------------|----------|
+| `fn_calcular_porcentaje_asistencia(alumno_id, comision_id)` | **STABLE** | Cuenta las asistencias del alumno en esa comisión y devuelve el porcentaje de estados `PRESENTE`. Si no hay registros, devuelve `0`. Valida que el alumno y la comisión existan. |
+| `fn_clasificar_nivel_asistencia(porcentaje)` | **IMMUTABLE** | Traduce un número a una etiqueta: `regular` (≥ 75 %), `en_riesgo` (≥ 50 %), `critico` (menor a 50 %) o `sin_datos` si el valor es nulo. No consulta tablas, solo el parámetro. |
+
+**STABLE** indica que la función lee la base pero no la altera; PostgreSQL puede optimizarla en consultas repetidas. **IMMUTABLE** indica que el resultado depende solo del argumento, lo que permite usarla en índices o expresiones sin riesgo de lecturas inconsistentes.
+
+Ejemplo de uso encadenado:
+
+```sql
+SELECT
+    fn_calcular_porcentaje_asistencia(1, 1) AS porcentaje,
+    fn_clasificar_nivel_asistencia(
+        fn_calcular_porcentaje_asistencia(1, 1)
+    ) AS nivel;
+```
+
+### Procedimiento almacenado (PROCEDURE)
+
+A diferencia de una función, un procedimiento **puede ejecutar acciones** (INSERT, UPDATE, etc.) y devolver valores por parámetros `OUT`.
+
+**`sp_inscribir_alumno_comision(alumno_id, comision_id, OUT inscripcion_id)`** inscribe un alumno en una comisión aplicando reglas de negocio:
+
+1. Verifica que existan el alumno, la comisión y su materia.
+2. Comprueba que la carrera del alumno coincida con la de la materia.
+3. Impide inscripciones duplicadas en la misma comisión.
+4. Inserta el registro en `inscripcion` y devuelve el `inscripcion_id` generado.
+
+Si alguna regla falla, lanza una excepción y no guarda nada. Se invoca con `CALL`:
+
+```sql
+CALL sp_inscribir_alumno_comision(1, 2, v_id);
+```
+
+### Robustez de tipos
+
+En PL/pgSQL usamos tipos **derivados del esquema** para que el código no quede atado a tamaños fijos (`INT`, `VARCHAR`, etc.) que podrían desincronizarse si cambia una columna:
+
+| Sintaxis | Uso en el proyecto |
+|----------|-------------------|
+| `columna%TYPE` | Variables como `v_alumno_id usuario.usuario_id%TYPE` heredan el tipo exacto de la columna. |
+| `tabla%ROWTYPE` | Registros como `v_alumno usuario%ROWTYPE` guardan una fila completa con todas sus columnas tipadas. |
+
+Si en el futuro se modifica el tipo de `usuario_id` o se agrega una columna a `usuario`, las variables y el `SELECT * INTO` siguen siendo válidos sin reescribir el procedimiento.
+
+### Abstracción (permisos)
+
+El rol `app_asistencias` solo tiene permiso de **ejecutar** las funciones y el procedimiento; no puede leer ni escribir las tablas directamente (`REVOKE` sobre tablas, `GRANT EXECUTE` sobre la lógica procedural). La aplicación accede a los datos a través de esta capa, no con SQL directo sobre las tablas.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 
 ### B. _Gestión Avanzada de Transacciones_
 1.	Atomicidad
@@ -175,7 +233,17 @@ LIMIT 5;
 
 ### C. _Capa de Auditoría y Forense de Datos_
 1.	Tabla de Logs:
-2.	 Captura de Excepciones
+   - Este código crea una función que intenta insertar un registro en la tabla inscripcion. Si falla, usa  la tabla audit_logs.
+2.	 Captura de Excepciones:
+
+- mensaje de error
+  
+<img width="923" height="75" alt="image" src="https://github.com/user-attachments/assets/71776f6e-ebd4-4b9a-80f8-ef22af33d961" />
+
+- Se registro el error en la tabla de audit_logs
+  
+<img width="923" height="606" alt="image" src="https://github.com/user-attachments/assets/b1f49eb1-e176-4c73-b345-8ef70b9dccf3" />
+
 
 ### D. _Seguridad y Blindaje (Hardening)_
 1.	Definidor vs Invocador
