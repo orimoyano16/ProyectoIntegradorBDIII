@@ -175,7 +175,17 @@ LIMIT 5;
 
 ### C. _Capa de Auditoría y Forense de Datos_
 1.	Tabla de Logs:
-2.	 Captura de Excepciones
+   - Este código crea una función que intenta insertar un registro en la tabla inscripcion. Si falla, usa  la tabla audit_logs.
+2.	 Captura de Excepciones:
+
+- mensaje de error
+  
+<img width="923" height="75" alt="image" src="https://github.com/user-attachments/assets/71776f6e-ebd4-4b9a-80f8-ef22af33d961" />
+
+- Se registro el error en la tabla de audit_logs
+  
+<img width="923" height="606" alt="image" src="https://github.com/user-attachments/assets/b1f49eb1-e176-4c73-b345-8ef70b9dccf3" />
+
 
 ### D. _Seguridad y Blindaje (Hardening)_
 1.	Definidor vs Invocador
