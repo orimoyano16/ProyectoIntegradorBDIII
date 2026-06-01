@@ -31,26 +31,38 @@ _link_: https://lucid.app/lucidchart/c6cb8a3d-38b0-45f1-9f97-e9c164d87dbd/edit?v
 ## `Estrategia de Indexación y Optimización`
 |Index | ¿Donde lo usamos?| Justificacion de uso |
 |------|------------------|----------------------|
-|B-TREE|PK,FK,dni,rol,fecha,alumno_id,comison,id |Por defecto. Ideal para igualdad, rango y ordenamiento. Soporta <, >, BETWEEN, ORDER BY|
-|Hash  |email, dni (solo busquedas exactas)|Muy rapido para igualdad exacta (=). No soporta rangos ni ordenamiento|
-|GIN   |observacion (texto completo), nombre y apellido|Busqueda de palabras clave en textos. Usa to_tsvector() para español|
-|GIST  |ubicacion GPS, rangos de fechas superpuestos|Datos espaciales/geometricos. Verificar geolocalizacion o solapamiento de horarios|
+|B-TREE|Dentro de la tabla usuario, lo usamos con dni, y carrera id y dentro de la tabla asistencia, lo usamos en fecha |En la tabla usuario para buscar rapido a los usuarios por su DNI y en la tabla asistencia para agilizar la busqueda por fecha|
+|Hash  |Dentro de la tabla usuarios, lo usamos en e-mail|Lo usamos en e-mail para poder buscar en la columna una igualdad con e-mail que se solicite|
+|GIN   |Dentro de la tabla asistencia, lo usamos en la columna observacion |En observacion, los usuarios deben justificar su falta, entonces esto nos ayuda en la busqueda de texto (full text search)|
+|GIST  |No lo usamos |No tenemos atributos que requieran una implentacion de GIST|
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
-
 ## `Análisis de Performance`
 #### _Consulta sin optimizar_ 
 
-<img width="1365" height="721" alt="image" src="https://github.com/user-attachments/assets/bfc9e87b-ec02-473e-9535-a43f52f2dc60" />
+<img width="1116" height="649" alt="image" src="https://github.com/user-attachments/assets/5851b37f-3ba3-4f8d-819f-45dfa30dc023" />
+
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Consulta Optimizada_
 
-<img width="1365" height="767" alt="image" src="https://github.com/user-attachments/assets/3184fcd2-b228-4dfe-8106-f5ec0fcfe3a4" />
+<img width="1111" height="648" alt="image" src="https://github.com/user-attachments/assets/a03ec42b-81a6-4ad1-ac2c-c9a575209b39" />
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Dalibo - Sequential Scans VS Index Scans
+
+### _Sequential Scan_
+
+<img width="1365" height="576" alt="image" src="https://github.com/user-attachments/assets/610776aa-9cd5-45ab-89ab-ab4d79630a45" />
+
+### _Index Scan_
+
+<img width="1365" height="579" alt="image" src="https://github.com/user-attachments/assets/f4339eab-5abf-493a-9704-87bb2359994c" />
+
+----------------------------------------------------------------------------------------------------------------------------------------------
 
 #### _Monitoreo de Consultas_ 
 
@@ -92,7 +104,7 @@ LIMIT 5;
 
 * ORDER BY calls DESC → ordena por más ejecuciones
 
-* LIMIT 5 → muestra solo las 5 más ejecutadas
+* LIMIT 5 → limita el resultado
 
 ##### 3. _Consultas con más I/O_
 ```sql   
@@ -107,7 +119,7 @@ LIMIT 5;
 
 * ORDER BY shared_blks_read DESC → ordena por más lectura de disco
 
-* LIMIT 5 → top 5
+* LIMIT 5 → limita el resultado
 
 ##### 4. _Consultas con más WAL_
 ```sql
@@ -122,7 +134,7 @@ LIMIT 5;
 
 * ORDER BY wal_bytes DESC → ordena por más escritura
 
-* LIMIT 5 → top 5 
+* LIMIT 5 → limita el resultado 
 
 ##### 5. _Consultas con más planificación_
 ```sql
@@ -137,17 +149,38 @@ LIMIT 5;
 
 * ORDER BY total_plan_time DESC → ordena por las más costosas de planificar
 
-* LIMIT 5 → top 5   
+* LIMIT 5 → limita el resultado   
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## `SQL Avanzado: Lógica de Negocio`
 |Herramienta    | Nombre | Explicacion de su uso|
 |---------------|--------|----------------------|
-|Window Function|ROW_NUMBER(), RANK(), LAG(), LEAD(), AVG() OVER()|Calcula valores a través de filas relacionadas sin agruparlas. Útil para: ranking de asistencia por alumno, detectar ausencias consecutivas (LAG), promedio móvil de asistencias, numerar inscripciones por alumno|
-|CTE            |WITH ... AS|Crea tablas temporales durante la ejecución de la consulta. Mejora la legibilidad y permite: consultas recursivas (jerarquías), reutilizar el mismo subquery varias veces, dividir problemas complejos en pasos simples (ej. primero calcular asistencias, luego filtrar ausencias >30%)|
+|CTE            |WITH ... AS|Usamos una CTE para dar orden y preparar los datos para calcular el porcentaje de asistencias.|
+|Window Function|ROW_NUMBER(), RANK(), LAG(), LEAD(), AVG() OVER()| Usamos una Window Function para evitar el costo de procesamiento de la subconsulta repetitiva, podemos ver la asistencia por comision, numero de asistencia por alumno, mejor asistencia, ausencia consecutiva, etc|
+
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
+# PARTE 2 
+### A. _Abstracción y Lógica Procedural_
+1.	Función (FUNCTION):
+2.	Procedimiento Almacenado (PROCEDURE):
+3.	Robustez de Tipos:
 
+### B. _Gestión Avanzada de Transacciones_
+1.	Atomicidad
+2.	Manejo de Errores Parciales:
+
+### C. _Capa de Auditoría y Forense de Datos_
+1.	Tabla de Logs:
+2.	 Captura de Excepciones
+
+### D. _Seguridad y Blindaje (Hardening)_
+1.	Definidor vs Invocador
+2.	2.	Protección contra Inyección: Fijar
+
+### E. _Automatización con Triggers_
+1.	Validación o Auditoría Automática:
+2.	Variables de Estado: 
