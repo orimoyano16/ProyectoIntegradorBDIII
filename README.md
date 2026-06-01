@@ -248,6 +248,16 @@ El rol `app_asistencias` solo tiene permiso de **ejecutar** las funciones y el p
 ### D. _Seguridad y Blindaje (Hardening)_
 1.	Definidor vs Invocador
 2.	 Protección contra Inyección: Fijar
+ 
+ Agrego SECURITY DEFINER sólo al Procedimiento Almacenado: "sp_inscribir_alumno_comision", porque implementa lógica administrativa crítica que modifica el estado del sistema. 
+    -- Se ejecuta bajo SECURITY DEFINER para permitir su uso por roles con privilegios limitados sin exponer acceso directo a las tablas, cumpliendo con el principio de <b> Privilegio Mínimo </b>
+    -- Las funciones de cálculo permanecen como <b>SECURITY INVOKER</b> ya que no requieren elevación de privilegios y no modifican datos.
+
+
+
+
+
+
 
 ### E. _Automatización con Triggers_
 

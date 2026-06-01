@@ -8,7 +8,7 @@ CREATE OR REPLACE PROCEDURE sp_inscribir_alumno_comision(
     OUT p_inscripcion_id INT
 )
 LANGUAGE plpgsql
-security definer -- Agrego el SECURITY DEFINER a este Procedimiento por ser un procedimiento administrativo crítico.
+security definer 
 set search_path = public
 AS $$
 DECLARE
