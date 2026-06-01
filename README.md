@@ -163,4 +163,24 @@ LIMIT 5;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
+# PARTE 2 
+### A. _Abstracción y Lógica Procedural_
+1.	Función (FUNCTION):
+2.	Procedimiento Almacenado (PROCEDURE):
+3.	Robustez de Tipos:
 
+### B. _Gestión Avanzada de Transacciones_
+1.	Atomicidad
+2.	Manejo de Errores Parciales:
+
+### C. _Capa de Auditoría y Forense de Datos_
+1.	Tabla de Logs:
+2.	 Captura de Excepciones
+
+### D. _Seguridad y Blindaje (Hardening)_
+1.	Definidor vs Invocador
+2.	2.	Protección contra Inyección: Fijar
+
+### E. _Automatización con Triggers_
+1.	Validación o Auditoría Automática:
+2.	Variables de Estado: 
