@@ -250,5 +250,9 @@ El rol `app_asistencias` solo tiene permiso de **ejecutar** las funciones y el p
 2.	2.	Protección contra Inyección: Fijar
 
 ### E. _Automatización con Triggers_
-1.	Validación o Auditoría Automática:
-2.	Variables de Estado: 
+
+1.	Validación o Auditoría Automática: implementacion de una funcion con triggers
+
+-registro del error dentro de la tabla de audit_logs 
+
+<img width="937" height="537" alt="image" src="https://github.com/user-attachments/assets/c67e2340-152a-403b-828f-598aac3644e9" />
