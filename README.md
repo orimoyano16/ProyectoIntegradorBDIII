@@ -247,7 +247,7 @@ El rol `app_asistencias` solo tiene permiso de **ejecutar** las funciones y el p
 
 ### D. _Seguridad y Blindaje (Hardening)_
 1.	Definidor vs Invocador
-2.	2.	Protección contra Inyección: Fijar
+2.	 Protección contra Inyección: Fijar
 
 ### E. _Automatización con Triggers_
 
