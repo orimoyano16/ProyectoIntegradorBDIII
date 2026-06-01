@@ -254,6 +254,7 @@ El rol `app_asistencias` solo tiene permiso de **ejecutar** las funciones y el p
     -- Se ejecuta bajo SECURITY DEFINER para permitir su uso por roles con privilegios limitados sin exponer acceso directo a las tablas, cumpliendo con el principio de <b> Privilegio Mínimo </b>
     -- Las funciones de cálculo permanecen como <b>SECURITY INVOKER</b> ya que no requieren elevación de privilegios y no modifican datos.
 
+<img width="678" height="247" alt="Captura de pantalla 2026-06-01 182418" src="https://github.com/user-attachments/assets/650ee818-006d-436e-ad93-0d70f1466c08" />
 
 
 
