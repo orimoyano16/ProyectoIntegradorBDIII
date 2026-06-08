@@ -164,11 +164,8 @@ LIMIT 5;
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 
-# PARTE 2 
-### A. _Abstracción y Lógica Procedural_
-1.	Función (FUNCTION):
-2.	Procedimiento Almacenado (PROCEDURE):
-3.	Robustez de Tipos:
+# PARTE 2
+
 ## `A. Abstracción y Lógica Procesal`
 
 Implementación en `Scripts SQL/Parte A - Logica Procedural.sql`. Las pruebas están en `Parte A - Pruebas.sql`.
@@ -228,45 +225,116 @@ El rol `app_asistencias` solo tiene permiso de **ejecutar** las funciones y el p
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
-### B. _Gestión Avanzada de Transacciones_
-1.	Atomicidad
-2.	Manejo de Errores Parciales:
+## `B. Gestión Avanzada de Transacciones`
 
-### C. _Capa de Auditoría y Forense de Datos_
-1.	Tabla de Logs:
-   - Este código crea una función que intenta insertar un registro en la tabla inscripcion. Si falla, usa  la tabla audit_logs.
-2.	 Captura de Excepciones:
+Implementación en `Scripts SQL/Commit y Rollback.sql`.
 
-- mensaje de error
-  
+### Atomicidad
+
+Una transacción agrupa varias operaciones en una unidad indivisible: o se confirman todas (`COMMIT`) o ninguna (`ROLLBACK`). En el script se inserta un usuario y luego se intenta una inscripción inválida; con `ROLLBACK TO SAVEPOINT` se deshace solo la inscripción fallida y se mantiene el alta del usuario. Al final, `COMMIT` confirma lo que quedó válido.
+
+El procedimiento `registrar_usuario` aplica el mismo concepto: el alta del alumno es la operación crítica; si la inscripción falla, un bloque `EXCEPTION` revierte solo esa parte y registra el error, pero el usuario ya creado se confirma con `COMMIT`.
+
+### Manejo de errores parciales
+
+`SAVEPOINT` y bloques `BEGIN … EXCEPTION … END` permiten **fallar en una parte sin perder todo**. Si la comisión no existe, la inscripción se cancela pero el usuario permanece. El error queda registrado en `audit_logs` para trazabilidad.
+
+---
+
+## `C. Capa de Auditoría y Forense de Datos`
+
+Implementación en `Scripts SQL/Auditlogs.sql`. La tabla `audit_logs` (definida en `Creacion de tablas.sql`) guarda fecha, usuario, código y mensaje de cada incidente.
+
+### Tabla de logs
+
+| Columna | Uso |
+|---------|-----|
+| `fecha` | Momento del evento |
+| `usuario` | Usuario de BD que ejecutó la operación |
+| `codigo_error` | Código SQLSTATE del error (o código propio) |
+| `mensaje_error` | Descripción legible del fallo |
+
+### Captura de excepciones
+
+El procedimiento `registrar_inscripcion` intenta insertar en `inscripcion`. Si falla (ID inexistente, llave foránea, duplicado, etc.), captura el error con `GET STACKED DIAGNOSTICS` y lo persiste en `audit_logs` sin detener la sesión.
+
+- Mensaje de error al ejecutar con IDs inválidos:
+
 <img width="923" height="75" alt="image" src="https://github.com/user-attachments/assets/71776f6e-ebd4-4b9a-80f8-ef22af33d961" />
 
-- Se registro el error en la tabla de audit_logs
-  
+- Registro del error en `audit_logs`:
+
 <img width="923" height="606" alt="image" src="https://github.com/user-attachments/assets/b1f49eb1-e176-4c73-b345-8ef70b9dccf3" />
 
+---
 
-### D. _Seguridad y Blindaje (Hardening)_
-1.	Definidor vs Invocador
-2.	 Protección contra Inyección: Fijar
- 
- Agrego SECURITY DEFINER sólo al Procedimiento Almacenado: "sp_inscribir_alumno_comision", porque implementa lógica administrativa crítica que modifica el estado del sistema. 
- 
-    - Se ejecuta bajo SECURITY DEFINER para permitir su uso por roles con privilegios limitados sin exponer acceso directo a las tablas, cumpliendo con el principio de <b> Privilegio Mínimo </b>
-    
-    - Las funciones de cálculo permanecen como <b>SECURITY INVOKER</b> ya que no requieren elevación de privilegios y no modifican datos.
+## `D. Seguridad y Blindaje (Hardening)`
+
+Implementación en `Scripts SQL/Parte D - Seguridad y Blindaje.sql`.
+
+### Definidor vs invocador
+
+| Modo | Dónde lo usamos | Por qué |
+|------|-----------------|---------|
+| **SECURITY INVOKER** (por defecto) | Funciones de cálculo (`fn_calcular_porcentaje_asistencia`, `fn_clasificar_nivel_asistencia`) | Solo leen datos; no necesitan privilegios elevados. |
+| **SECURITY DEFINER** | `sp_inscribir_alumno_comision` | Ejecuta con permisos del dueño del procedimiento, permitiendo que roles limitados (`app_asistencias`) inscriban alumnos sin acceso directo a las tablas. |
+
+### Protección contra inyección
+
+El procedimiento usa `SET search_path = public` para fijar el esquema y evitar que un atacante redirija objetos a tablas maliciosas. Los parámetros se pasan tipados (`INT`), no concatenados en SQL dinámico, lo que impide inyección por entrada de usuario.
+
+Principio aplicado: **privilegio mínimo** — la app solo ejecuta procedimientos autorizados, no consulta tablas directamente.
 
 <img width="678" height="247" alt="Captura de pantalla 2026-06-01 182418" src="https://github.com/user-attachments/assets/650ee818-006d-436e-ad93-0d70f1466c08" />
 
+---
 
+## `E. Automatización con Triggers`
 
+Implementación en `Scripts SQL/triggers.sql`.
 
+### Validación y auditoría automática
 
+La función `fn_auditar_cambio_asistencia` se dispara **después** de cada `UPDATE` en `asistencia`. Si cambia el campo `estado`, registra en `audit_logs` el valor anterior (`OLD`) y el nuevo (`NEW`) usando `format()`, sin intervención manual.
 
-### E. _Automatización con Triggers_
+El trigger `trg_auditoria_asistencia` ejecuta esa función en cada fila modificada. Si el propio INSERT en `audit_logs` falla, un bloque `EXCEPTION` captura el error del sistema y lo vuelve a registrar.
 
-1.	Validación o Auditoría Automática: implementacion de una funcion con triggers
-
--registro del error dentro de la tabla de audit_logs 
+Ejemplo: al cambiar una asistencia de `Ausente` a `Presente`, el log se genera automáticamente:
 
 <img width="937" height="537" alt="image" src="https://github.com/user-attachments/assets/c67e2340-152a-403b-828f-598aac3644e9" />
+
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+# PARTE 3
+
+## `Integración de Caché con Redis (Persistencia Políglota)`
+
+Implementación del patrón **Cache-Aside** con PostgreSQL + Redis.
+
+| Recurso | Ubicación |
+|---------|-----------|
+| Documentación y checklist | [`Parte 3 - Redis/README.md`](Parte%203%20-%20Redis/README.md) |
+| API backend | `Parte 3 - Redis/backend/` |
+| Docker (PostgreSQL + Redis) | `Parte 3 - Redis/docker-compose.yml` |
+
+**Endpoints cacheados:**
+
+- `GET /api/alumnos/:id/asistencia/:comisionId` → clave `asistencia:{id}:{comisionId}` (TTL 120 s)
+- `GET /api/usuarios/dni/:dni` → clave `users:dni:{dni}` (TTL 300 s)
+
+### Qué se hizo
+
+- API con patrón **Cache-Aside** (Redis + PostgreSQL).
+- Docker, TTL, nomenclatura de claves y fallback implementados.
+- Probado en navegador: PONG y Cache HIT.
+
+### Capturas
+
+| Prueba | Imagen |
+|--------|--------|
+| Endpoints de la API | ![API](Parte%203%20-%20Redis/imagenes/01-api-endpoints.png) |
+| Redis PONG | ![PONG](Parte%203%20-%20Redis/imagenes/02-redis-pong.png) |
+| Cache HIT | ![HIT](Parte%203%20-%20Redis/imagenes/03-cache-hit.png) |
+
+Documentación completa: [`Parte 3 - Redis/README.md`](Parte%203%20-%20Redis/README.md)
+
