@@ -332,9 +332,9 @@ Implementación del patrón **Cache-Aside** con PostgreSQL + Redis.
 
 | Prueba | Imagen |
 |--------|--------|
-| Endpoints de la API | ![API](Parte%203%20-%20Redis/imagenes/01-api-endpoints.png) |
-| Redis PONG | ![PONG](Parte%203%20-%20Redis/imagenes/02-redis-pong.png) |
-| Cache HIT | ![HIT](Parte%203%20-%20Redis/imagenes/03-cache-hit.png) |
+| Endpoints de la API | ![API] |
+| Redis PONG | ![PONG] |
+| Cache HIT | ![HIT] |
 
 Documentación completa: [`Parte 3 - Redis/README.md`](Parte%203%20-%20Redis/README.md)
 
