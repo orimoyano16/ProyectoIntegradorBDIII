@@ -338,3 +338,8 @@ Implementación del patrón **Cache-Aside** con PostgreSQL + Redis.
 
 Documentación completa: [`Parte 3 - Redis/README.md`](Parte%203%20-%20Redis/README.md)
 
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# PARTE 4 
