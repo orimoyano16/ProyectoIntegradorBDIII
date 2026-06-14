@@ -26,3 +26,25 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  backend:
+    build: ./backend
+    container_name: sistema-asistecias
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/asistencia_institucional_db
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./backend:/app                  # hot-reload en desarrollo
+      - /app/node_modules      # evita pisar node_modules del host
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
