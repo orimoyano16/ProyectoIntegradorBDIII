@@ -1,6 +1,38 @@
 const { redis, isRedisAvailable } = require('../config/redis');
 
 /**
+ * Autor: Santiago Marranti
+ * Invalidamos un dato especifico en Redis. Usado en peticion PUT/PATCH o DELETE
+ */
+async function invalidateDataKey(key) {
+    // Invalidamos el caché del porcentaje de asistencia para que se actualice en la próxima consulta
+    if (isRedisAvailable()) {
+      try {
+        await redis.del(key);
+        console.log(`[Cache] DEL  → ${key} (Invalidado por nueva asistencia)`);
+      } catch (err) {
+        console.warn(`[Cache] Error invalidando Redis (${key}):`, err.message);
+      }
+    }
+}
+
+async function setDataKey(key, data, ttlSeconds) {
+  if (isRedisAvailable()) {
+    try {
+      await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
+      console.log(`[Cache] SET  → ${key} (TTL ${ttlSeconds}s)`);
+    } catch (err) {
+      console.warn(`[Cache] Error escribiendo Redis (${key}):`, err.message);
+    }
+  }
+
+  return {
+    data,
+    cacheKey: key,
+  };
+}
+
+/**
  * Patrón Cache-Aside (Lazy Loading):
  * 1. Buscar en Redis
  * 2. HIT → devolver
@@ -26,14 +58,7 @@ async function cacheAside(key, ttlSeconds, fetchFromDb) {
 
   const data = await fetchFromDb();
 
-  if (isRedisAvailable()) {
-    try {
-      await redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
-      console.log(`[Cache] SET  → ${key} (TTL ${ttlSeconds}s)`);
-    } catch (err) {
-      console.warn(`[Cache] Error escribiendo Redis (${key}):`, err.message);
-    }
-  }
+  await setDataKey(key, data, ttlSeconds);
 
   return {
     data,
@@ -42,4 +67,4 @@ async function cacheAside(key, ttlSeconds, fetchFromDb) {
   };
 }
 
-module.exports = { cacheAside };
+module.exports = { cacheAside, setDataKey, invalidateDataKey };

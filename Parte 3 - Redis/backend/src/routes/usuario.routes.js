@@ -1,6 +1,8 @@
 const express = require('express');
-const { cacheAside } = require('../cache/cacheAside');
+
+const { cacheAside, setDataKey } = require('../cache/cacheAside');
 const keys = require('../cache/keys');
+
 const { getUsuarioByDni } = require('../services/usuario.service');
 
 const router = express.Router();

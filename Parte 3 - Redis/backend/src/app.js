@@ -43,8 +43,22 @@ async function start() {
   await testConnection();
   await connectRedis();
 
+  // DEBUG: listar rutas registradas
+  console.log('=== RUTAS REGISTRADAS ===');
+  app._router.stack.forEach(middleware => {
+    if (middleware.handle && middleware.handle.stack) {
+      middleware.handle.stack.forEach(handler => {
+        if (handler.route) {
+          const methods = Object.keys(handler.route.methods).join(', ').toUpperCase();
+          console.log(`${methods} /api${handler.route.path}`);
+        }
+      });
+    }
+  });
+  console.log('=========================');
+
   app.listen(PORT, () => {
-    console.log(`API escuchando en http://localhost:${PORT}`);
+    console.log(`\nAPI escuchando en http://localhost:${PORT}`);
     console.log('Probá: GET /api/alumnos/1/asistencia/1 (2 veces para ver HIT/MISS)');
   });
 }
