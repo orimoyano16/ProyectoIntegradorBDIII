@@ -343,3 +343,11 @@ Documentación completa: [`Parte 3 - Redis/README.md`](Parte%203%20-%20Redis/REA
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # PARTE 4 
+1. Una petición POST (con su JSON en el Body).
+    ![alt text](<imagenes/image-1.png>)
+2. Una petición PUT (con su ID en la URL y JSON en el Body).
+    ![alt text](imagenes/image-2.png)
+3. Una petición DELETE (para probar la baja lógica).
+    ![alt text](imagenes/image-3.png)
+4. Opcional pero recomendado: Una petición que envíe un dato erróneo para demostrar que su API devuelve un Status 400 o 404 Not Found correctamente.
+    ![alt text](imagenes/image-4.png)
