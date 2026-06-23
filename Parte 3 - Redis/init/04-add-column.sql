@@ -1,1 +1,0 @@
-ALTER TABLE usuario ADD COLUMN fecha_baja DATE DEFAULT NULL;
